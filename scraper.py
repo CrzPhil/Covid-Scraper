@@ -53,4 +53,12 @@ closed_raw = soup.find_all('div', class_='col-md-6')
 closed_string = str(closed_raw[1])
 closed_cases = re.search('\"number-table-main\">(.+?)<', closed_string).group(1)
 
+# Data by Country
+
+all_data = soup.findAll('tbody')
+# all_data[0] = All Table data. Country and every column. 
+# all_data[1] = North America, Europe, Asia, South America, Africa, Oceania
+# all_data[2] = All
+
+print(all_data[0])
 
