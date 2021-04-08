@@ -70,6 +70,35 @@ total_deaths_column = re.findall("<td style=\"font-weight: bold; text-align:righ
 
 active_cases_column = re.findall("<td style=\"text-align:right;font-weight:bold;\">(.+?)</td>", str(table))
 
-# print(country_names)
+# print("Countries: ")
+# print(len(country_names))
 
+control = 0
+for country in country_names:
+    print("Stats for " + country + ": ")
+    for i in range(8):
+        if i == 0:
+            print("Total Cases: " + all_columns[control])
+            control += 1
+        elif i == 1:
+            print("Total Recovered: " + all_columns[control])
+            control += 1
+        elif i == 2:
+            print("Serious or Critical: " + all_columns[control])
+            control += 1
+        elif i == 3:
+            print("Total Cases/1M pop: " + all_columns[control])
+            control += 1
+        elif i == 4:
+            print("Deaths/1M pop: " + all_columns[control])
+            control += 1
+        elif i == 5:
+            print("Total Tests: " + all_columns[control])
+            control += 1
+        elif i == 6:
+            print("Tests/1M pop: " + all_columns[control])
+            control += 1
+        elif i == 7:
+            print("\n")
+            control += 1
 
