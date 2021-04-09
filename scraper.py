@@ -1,6 +1,7 @@
 from urllib.request import urlopen, Request
 import re
 from bs4 import BeautifulSoup
+import sys
 
 # Due to mod_security, or some other feature that blocks known spider/bot user agents,
 # we set a known browser user agent (here Mozilla)
@@ -14,10 +15,15 @@ soup = BeautifulSoup(html, "html.parser")
 
 
 class Country:
-    def __init__(self, name, tot_cases, tot_rec, serious, tot_per_mil, death_per_mil, tot_tests, test_per_mil):
+    def __init__(self, name, tot_cases, new_cases, tot_deaths, new_deaths, tot_rec, active_cases, serious, tot_per_mil,
+                 death_per_mil, tot_tests, test_per_mil):
         self.name = name
         self.tot_cases = tot_cases
+        self.new_cases = new_cases
+        self.tot_deaths = tot_deaths
+        self.new_deaths = new_deaths
         self.tot_rec = tot_rec
+        self.active_cases = active_cases
         self.serious = serious
         self.tot_per_mil = tot_per_mil
         self.death_per_mil = death_per_mil
@@ -51,116 +57,99 @@ closed_raw = soup.find_all('div', class_='col-md-6')
 closed_string = str(closed_raw[1])
 closed_cases = re.search("\"number-table-main\">(.+?)<", closed_string).group(1)
 
-# Here begins the Front-end Messages etc.
+# Find and parse table
+table = soup.find("tbody")
+all_data = []
+for row in table.findAll("tr"):
+    cells = row.findAll("td")
+    # Strip/Cleanup the entries
+    cells = [ele.text.strip() for ele in cells]
+    # print(cells)
+    all_data.append(cells)
 
-print("-------------------------------------------------------")
-print("[+] Covid-19 real-time data scraper")
-print("Total Worldwide Cases: " + total_cases)
-print("Total Worldwide Deaths: " + total_deaths)
-print("Total Worldwide recoveries: " + total_recoveries)
-print("Total Worldwide closed cases: " + closed_cases)
-print("Current Worldwide active cases: " + active_cases)
+# each sub-array of cells returns the following, which might come in usefully when visualising data:
+# ['num_in_list', 'name', 'tot_cases', 'new_cases', 'tot_deaths', 'new_deaths', 'tot_recovered', 'some_number',
+# 'active_cases', 'serious_cases', 'tot_per_mil', 'death_per_mil', 'tot_tests', 'tests_per_mil', 'population',
+# 'continent', 'some_number', 'some_number', 'some_number']
 
-# Data by Country
-all_data = soup.findAll("tbody")
-# all_data[0] = All Table data; Country and every column
-# all_data[1] = North America, Europe, Asia, South America, Africa, Oceania
-# all_data[2] = All
-
-# print(all_data[0])
-
-x = re.findall("td>(.+?)</td>", str(all_data[0]))
-
-# print(x)
-
-country_names = re.findall("/\">(.+?)</a></td>", str(all_data[0]))
-
-# print(country_names)
-
-table = soup.find_all("table")
-all_columns = re.findall("<td style=\"font-weight: bold; text-align:right\">(.+?)</td>", str(table))
-
-total_deaths_column = re.findall("<td style=\"font-weight: bold; text-align:right;\">(.+?)</td>", str(table))
-
-active_cases_column = re.findall("<td style=\"text-align:right;font-weight:bold;\">(.+?)</td>", str(table))
-
-# print("Countries: ")
-# print(len(country_names))
-
-'''control = 0
-for country in country_names:
-    print("Stats for " + country + ": ")
-    for i in range(8):
-        if i == 0:
-            print("Total Cases: " + all_columns[control])
-            control += 1
-        elif i == 1:
-            print("Total Recovered: " + all_columns[control])
-            control += 1
-        elif i == 2:
-            print("Serious or Critical: " + all_columns[control])
-            control += 1
-        elif i == 3:
-            print("Total Cases/1M pop: " + all_columns[control])
-            control += 1
-        elif i == 4:
-            print("Deaths/1M pop: " + all_columns[control])
-            control += 1
-        elif i == 5:
-            print("Total Tests: " + all_columns[control])
-            control += 1
-        elif i == 6:
-            print("Tests/1M pop: " + all_columns[control])
-            control += 1
-        elif i == 7:
-            print("\n")
-            control += 1'''
-
-# Create Country List
-countries = [Country(None, None, None, None, None, None, None, None) for i in range(len(country_names))]
+# Since the first 8 entries of the 'cells' array are continents, we skip them here
+countries_new = [Country(None, None, None, None, None, None, None, None, None, None, None, None)
+                 for i in range(len(all_data)-8)]
 
 # Add the data
-
-control = 0
-for i in range(len(country_names)):
-    countries[i].name = country_names[i]
-    for j in range(8):
-        if j == 0:
-            countries[i].tot_cases = all_columns[control]
-            control += 1
-        elif j == 1:
-            countries[i].tot_rec = all_columns[control]
-            control += 1
+# Control starts at 8 since the first 8 values sub-arrays are data of continents
+control = 8
+for i in range(len(countries_new)):
+    for j in range(14):
+        if j == 1:
+            countries_new[i].name = all_data[control][j]
         elif j == 2:
-            countries[i].serious = all_columns[control]
-            control += 1
+            countries_new[i].tot_cases = all_data[control][j]
         elif j == 3:
-            countries[i].tot_per_mil = all_columns[control]
-            control += 1
+            countries_new[i].new_cases = all_data[control][j]
         elif j == 4:
-            countries[i].death_per_mil = all_columns[control]
-            control += 1
+            countries_new[i].tot_deaths = all_data[control][j]
         elif j == 5:
-            countries[i].tot_tests = all_columns[control]
-            control += 1
+            countries_new[i].new_deaths = all_data[control][j]
         elif j == 6:
-            countries[i].test_per_mil = all_columns[control]
-            control += 1
+            countries_new[i].tot_rec = all_data[control][j]
+        # There is a weird value which isn't visible in the table so we skip it as it's unknown
         elif j == 7:
-            control += 1
+            pass
+        elif j == 8:
+            countries_new[i].active_cases = all_data[control][j]
+        elif j == 9:
+            countries_new[i].serious = all_data[control][j]
+        elif j == 10:
+            countries_new[i].tot_per_mil = all_data[control][j]
+        elif j == 11:
+            countries_new[i].death_per_mil = all_data[control][j]
+        elif j == 12:
+            countries_new[i].tot_tests = all_data[control][j]
+        elif j == 13:
+            countries_new[i].test_per_mil = all_data[control][j]
 
+    # Increment control to point to next sub-array
+    control += 1
 
-for i in range(len(country_names)):
-    print(countries[i].name + " data: ")
-    print("Total Cases: " + countries[i].tot_cases)
-    print("Total Recoveries: " + countries[i].tot_rec)
-    print("Total serious/critical cases: " + countries[i].serious)
-    print("Total Cases per Million: " + countries[i].tot_per_mil)
-    print("Total Deaths per Million: " + countries[i].death_per_mil)
-    print("Total Tests: " + countries[i].tot_tests)
-    print("Total Tests per Million: " + countries[i].test_per_mil)
+if __name__ == "__main__":
+    # Here begins the Front-end Messages etc.
+    print("-------------------------------------------------------")
+    print("[+] Covid-19 real-time data scraper")
+    print("Total Worldwide Cases: " + total_cases)
+    print("Total Worldwide Deaths: " + total_deaths)
+    print("Total Worldwide recoveries: " + total_recoveries)
+    print("Total Worldwide closed cases: " + closed_cases)
+    print("Current Worldwide active cases: " + active_cases)
+    print("\n")
+    print("Just type the name of the country you want more data about below.")
+    print("Type exit to leave the program.")
     print("\n")
 
-# Problems:
-# 1. Something with China is being very weird (doesn't seem to offset the data though)
-# 2. Number 195, Diamond Princess is in italics and offsets the last few country names as it isn't parsed
+    running = True
+
+    while running:
+        query = input("Country Name: ")
+
+        if query == "exit":
+            running = False
+        else:
+            for country in countries_new:
+                if query == country.name:
+                    print("Total Cases: " + country.tot_cases)
+                    print("New Cases: " + country.new_cases)
+                    print("Total Deaths: " + country.tot_deaths)
+                    print("New Deaths: " + country.new_deaths)
+                    print("Total Recoveries: " + country.tot_rec)
+                    print("Active Cases: " + country.active_cases)
+                    print("Total serious/critical cases: " + country.serious)
+                    print("Total Cases per Million: " + country.tot_per_mil)
+                    print("Total Deaths per Million: " + country.death_per_mil)
+                    print("Total Tests: " + country.tot_tests)
+                    print("Total Tests per Million: " + country.test_per_mil)
+                    print("\n")
+                    break
+                elif country.name == countries_new[len(countries_new)-1].name and\
+                        countries_new[len(countries_new)-1].name != query:
+                    print("The name you typed returned no matches in the database.")
+                    print("\n")
