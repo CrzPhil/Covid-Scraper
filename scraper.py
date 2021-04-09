@@ -10,8 +10,22 @@ page = urlopen(url)
 html = page.read().decode("utf-8")
 soup = BeautifulSoup(html, "html.parser")
 
-# All of the above returns us the pure HTML of the site.
-# Now we need to use regex to extract the text. Better said, extract the juice.
+# All of the above returns us the pure HTML of the site
+
+
+class Country:
+    def __init__(self, name, tot_cases, tot_rec, serious, tot_per_mil, death_per_mil, tot_tests, test_per_mil):
+        self.name = name
+        self.tot_cases = tot_cases
+        self.tot_rec = tot_rec
+        self.serious = serious
+        self.tot_per_mil = tot_per_mil
+        self.death_per_mil = death_per_mil
+        self.tot_tests = tot_tests
+        self.test_per_mil = test_per_mil
+
+
+# Now we need to use regex to extract the text
 
 # Get total Cases
 total_cases_raw = soup.find('div', class_='maincounter-number')
@@ -49,7 +63,7 @@ print("Current Worldwide active cases: " + active_cases)
 
 # Data by Country
 all_data = soup.findAll("tbody")
-# all_data[0] = All Table data. Country and every column.
+# all_data[0] = All Table data; Country and every column
 # all_data[1] = North America, Europe, Asia, South America, Africa, Oceania
 # all_data[2] = All
 
@@ -73,7 +87,7 @@ active_cases_column = re.findall("<td style=\"text-align:right;font-weight:bold;
 # print("Countries: ")
 # print(len(country_names))
 
-control = 0
+'''control = 0
 for country in country_names:
     print("Stats for " + country + ": ")
     for i in range(8):
@@ -100,5 +114,53 @@ for country in country_names:
             control += 1
         elif i == 7:
             print("\n")
+            control += 1'''
+
+# Create Country List
+countries = [Country(None, None, None, None, None, None, None, None) for i in range(len(country_names))]
+
+# Add the data
+
+control = 0
+for i in range(len(country_names)):
+    countries[i].name = country_names[i]
+    for j in range(8):
+        if j == 0:
+            countries[i].tot_cases = all_columns[control]
+            control += 1
+        elif j == 1:
+            countries[i].tot_rec = all_columns[control]
+            control += 1
+        elif j == 2:
+            countries[i].serious = all_columns[control]
+            control += 1
+        elif j == 3:
+            countries[i].tot_per_mil = all_columns[control]
+            control += 1
+        elif j == 4:
+            countries[i].death_per_mil = all_columns[control]
+            control += 1
+        elif j == 5:
+            countries[i].tot_tests = all_columns[control]
+            control += 1
+        elif j == 6:
+            countries[i].test_per_mil = all_columns[control]
+            control += 1
+        elif j == 7:
             control += 1
 
+
+for i in range(len(country_names)):
+    print(countries[i].name + " data: ")
+    print("Total Cases: " + countries[i].tot_cases)
+    print("Total Recoveries: " + countries[i].tot_rec)
+    print("Total serious/critical cases: " + countries[i].serious)
+    print("Total Cases per Million: " + countries[i].tot_per_mil)
+    print("Total Deaths per Million: " + countries[i].death_per_mil)
+    print("Total Tests: " + countries[i].tot_tests)
+    print("Total Tests per Million: " + countries[i].test_per_mil)
+    print("\n")
+
+# Problems:
+# 1. Something with China is being very weird (doesn't seem to offset the data though)
+# 2. Number 195, Diamond Princess is in italics and offsets the last few country names as it isn't parsed
