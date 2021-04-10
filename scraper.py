@@ -1,6 +1,7 @@
 from urllib.request import urlopen, Request
 import re
 from bs4 import BeautifulSoup
+import csv
 import sys
 
 # Due to mod_security, or some other feature that blocks known spider/bot user agents,
@@ -68,14 +69,14 @@ def getWorldwide():
 def prepareData():
     # Find and parse table
     table = soup.find("tbody")
-    all_data = []
+    data = []
     for row in table.findAll("tr"):
         cells = row.findAll("td")
         # Strip/Cleanup the entries
         cells = [ele.text.strip() for ele in cells]
         # print(cells)
-        all_data.append(cells)
-    return all_data
+        data.append(cells)
+    return data
 
 # each sub-array of cells returns the following, which might come in usefully when visualising data:
 # ['num_in_list', 'name', 'tot_cases', 'new_cases', 'tot_deaths', 'new_deaths', 'tot_recovered', 'some_number',
@@ -139,6 +140,7 @@ if __name__ == "__main__":
         print("Type the name of the country (i.e Greece, USA, S. Korea), that you want more data about below.")
         print("Type 'exit' to leave the program.")
         print("Type 'worldwide' for the overall data.")
+        print("Type 'download' for a csv file with the data.")
         print("\n")
 
         query = input("Country Name: ")
@@ -147,6 +149,12 @@ if __name__ == "__main__":
             running = False
         elif query == "worldwide":
             getWorldwide()
+        elif query == "download":
+            print(". . . Downloading Data . . .")
+            with open('covid_data.csv', 'w') as file:
+                writer = csv.writer(file, delimiter=',')
+                writer.writerows(all_data)
+            print("Successfully downloaded covid_data.csv file. \n")
         else:
             for country in countries:
                 if query == country.name:
