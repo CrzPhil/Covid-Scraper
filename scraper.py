@@ -17,7 +17,7 @@ soup = BeautifulSoup(html, "html.parser")
 
 class Country:
     def __init__(self, name, tot_cases, new_cases, tot_deaths, new_deaths, tot_rec, active_cases, serious, tot_per_mil,
-                 death_per_mil, tot_tests, test_per_mil):
+                 death_per_mil, tot_tests, test_per_mil, rank):
         self.name = name
         self.tot_cases = tot_cases
         self.new_cases = new_cases
@@ -30,6 +30,7 @@ class Country:
         self.death_per_mil = death_per_mil
         self.tot_tests = tot_tests
         self.test_per_mil = test_per_mil
+        self.rank = rank
 
 
 def getWorldwide():
@@ -90,7 +91,9 @@ def addData(countryarray, data):
     control = 8
     for i in range(len(countryarray)):
         for j in range(14):
-            if j == 1:
+            if j == 0:
+                countryarray[i].rank = data[control][j]
+            elif j == 1:
                 countryarray[i].name = data[control][j]
             elif j == 2:
                 countryarray[i].tot_cases = data[control][j]
@@ -125,7 +128,7 @@ def addData(countryarray, data):
 if __name__ == "__main__":
     all_data = prepareData()
     # Since the first 8 entries of the 'cells' array are continents, we skip them here
-    countries = [Country(None, None, None, None, None, None, None, None, None, None, None, None)
+    countries = [Country(None, None, None, None, None, None, None, None, None, None, None, None, None)
                  for i in range(len(all_data) - 8)]
     addData(countries, all_data)
 
@@ -143,7 +146,7 @@ if __name__ == "__main__":
         print("Type 'download' for a csv file with the data.")
         print("\n")
 
-        query = input("Country Name: ")
+        query = input("Query:  ")
 
         if query == "exit":
             running = False
@@ -153,11 +156,26 @@ if __name__ == "__main__":
             print(". . . Downloading Data . . .")
             with open('covid_data.csv', 'w') as file:
                 writer = csv.writer(file, delimiter=',')
-                writer.writerows(all_data)
+                # Create a new variable for the data list to add headings
+                downloadable_data = all_data
+                headers = ['Rank', 'Country', 'Total Cases', 'New Cases', 'Total Deaths', 'New Deaths',
+                           'Total Recovered', 'N/A', 'Active Cases', 'Serious/Critical',
+                           'Total Cases/Million', 'Deaths/Million', 'Total Tests',
+                           'Tests/Million', 'Population', 'Continent', 'N/A', 'N/A', 'N/A']
+                # Add the variable to index 8 of the data array
+                downloadable_data.insert(8, headers)
+                for country_index in range(len(downloadable_data)):
+                    for entry_index in range(len(downloadable_data[country_index])):
+                        downloadable_data[country_index][entry_index] = downloadable_data[country_index][
+                            entry_index].replace(',', '')
+                # We get rid of the first 8 entries that aren't countries
+                for i in range(len(downloadable_data) - 8):
+                    writer.writerow(downloadable_data[i + 8])
             print("Successfully downloaded covid_data.csv file. \n")
         else:
             for country in countries:
                 if query == country.name:
+                    print("Country Rank: " + country.rank)
                     print("Total Cases: " + country.tot_cases)
                     print("New Cases: " + country.new_cases)
                     print("Total Deaths: " + country.tot_deaths)
