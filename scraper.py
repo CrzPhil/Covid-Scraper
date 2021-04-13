@@ -2,6 +2,7 @@ from urllib.request import urlopen, Request
 import re
 from bs4 import BeautifulSoup
 import csv
+import datetime
 import sys
 
 # Due to mod_security, or some other feature that blocks known spider/bot user agents,
@@ -125,7 +126,7 @@ def addData(countryarray, data):
         control += 1
 
 
-if __name__ == "__main__":
+def main():
     all_data = prepareData()
     # Since the first 8 entries of the 'cells' array are continents, we skip them here
     countries = [Country(None, None, None, None, None, None, None, None, None, None, None, None, None)
@@ -154,7 +155,10 @@ if __name__ == "__main__":
             getWorldwide()
         elif query == "download":
             print(". . . Downloading Data . . .")
-            with open('covid_data.csv', 'w') as file:
+            current_datetime = datetime.datetime.now()
+            file_name = str(current_datetime)
+            extension = ".csv"
+            with open(file_name + extension, 'w') as file:
                 writer = csv.writer(file, delimiter=',')
                 # Create a new variable for the data list to add headings
                 downloadable_data = all_data
@@ -171,7 +175,7 @@ if __name__ == "__main__":
                 # We get rid of the first 8 entries that aren't countries
                 for i in range(len(downloadable_data) - 8):
                     writer.writerow(downloadable_data[i + 8])
-            print("Successfully downloaded covid_data.csv file. \n")
+            print("Successfully downloaded " + file_name + ".csv file. \n")
         else:
             for country in countries:
                 if query == country.name:
@@ -189,7 +193,11 @@ if __name__ == "__main__":
                     print("Total Tests per Million: " + country.test_per_mil)
                     print("\n")
                     break
-                elif country.name == countries[len(countries) - 1].name and\
+                elif country.name == countries[len(countries) - 1].name and \
                         countries[len(countries) - 1].name != query:
                     print("The name you typed returned no matches in the database.")
                     print("\n")
+
+
+if __name__ == "__main__":
+    main()
