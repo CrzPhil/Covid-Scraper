@@ -139,14 +139,16 @@ def main():
     getWorldwide()
 
     running = True
+    
+    print("Type the name of the country (i.e Greece, USA, S. Korea), that you want more data about below.")
+    print("Type 'exit' to leave the program.")
+    print("Type 'worldwide' for the overall data.")
+    print("Type 'download' for a csv file with the data.")
+    print("\n")
+
 
     while running:
-        print("Type the name of the country (i.e Greece, USA, S. Korea), that you want more data about below.")
-        print("Type 'exit' to leave the program.")
-        print("Type 'worldwide' for the overall data.")
-        print("Type 'download' for a csv file with the data.")
         print("\n")
-
         query = input("Query:  ")
 
         if query == "exit":
