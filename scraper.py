@@ -1,4 +1,5 @@
 from urllib.request import urlopen, Request
+import ssl
 import re
 from bs4 import BeautifulSoup
 import csv
@@ -7,6 +8,7 @@ import sys
 
 # Due to mod_security, or some other feature that blocks known spider/bot user agents,
 # we set a known browser user agent (here Mozilla)
+ssl._create_default_https_context = ssl._create_unverified_context
 
 url = Request('https://www.worldometers.info/coronavirus/#countries', headers={'User-Agent': 'Mozilla/5.0'})
 page = urlopen(url)
