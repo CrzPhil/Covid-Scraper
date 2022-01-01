@@ -3,7 +3,7 @@ import ssl
 import re
 from bs4 import BeautifulSoup
 import csv
-from datetime import datetime
+import datetime
 import sys
 
 # Due to mod_security, or some other feature that blocks known spider/bot user agents,
@@ -17,6 +17,7 @@ soup = BeautifulSoup(html, "html.parser")
 
 # Specify datetime format for filenames later
 format = "%m-%d-%Y"
+strftime(format)
 
 # All of the above returns us the pure HTML of the site
 
@@ -162,7 +163,7 @@ def main():
             getWorldwide()
         elif query == "download":
             print(". . . Downloading Data . . .")
-            file_name = datetime.now().strftime(format) 
+            file_name = datetime.now().now.strftime(format) 
             extension = ".csv"
             with open(file_name + extension, 'w') as file:
                 writer = csv.writer(file, delimiter=',')
